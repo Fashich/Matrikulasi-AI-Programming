@@ -4,24 +4,35 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private float moveSpeed = 5f;
-
-    private void Update() {
-        Vector2 inputVector = new Vector2 (0, 0);
-        if (Input.GetKey(KeyCode.W)) {
-            inputVector.y = +1;
-        }
-        if (Input.GetKey(KeyCode.S)) {
-            inputVector.y = -1;
-        }
-        if (Input.GetKey(KeyCode.A)) {
-            inputVector.x = -1;
-        }
-        if (Input.GetKey(KeyCode.D)) {
-            inputVector.x = +1;
-        }
-        inputVector = inputVector.normalized;
-        Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
-        Debug.Log(Time.deltaTime);
+    [SerializeField] private float _speed;
+    [SerializeField] private Camera _camera;
+    private Rigidbody _rigidbody;
+    private void Awake()
+    {
+        _rigidbody = GetComponent<Rigidbody>();
+        HideAndLockCursor();
     }
+
+    private void HideAndLockCursor()
+    {
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        // Horizontal = a or left (-) & d or right (+)
+        float horizontal = Input.GetAxis("Horizontal");
+        // Vertical = s or down (-) & w or up (+)
+        float vertical = Input.GetAxis("Vertical");
+
+        Vector3 horizontalDirection = horizontal * _camera.transform.right;
+        Vector3 verticalDirection = vertical * _camera.transform.forward;
+        horizontalDirection.y = 0;
+        verticalDirection.y = 0;
+
+        Vector3 movementDirection = new Vector3(horizontal, 0, vertical);
+        _rigidbody.linearVelocity = movementDirection * _speed; Debug.Log("Vertical: " + vertical);
+    }
 }
