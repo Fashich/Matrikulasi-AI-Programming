@@ -1,0 +1,24 @@
+{
+  "formattingOptions": {
+    "useTabs": false,
+    "tabSize": 4,
+    "insertFinalNewLine": true
+  },
+  "roslynExtensionsOptions": {
+    "enableAnalyzersSupport": true,
+    "enableEditorConfigSupport": true,
+    "locationPaths": []
+  },
+  "advanced": {
+    "enableAsyncCompletion": true,
+    "enableDecompilationSupport": false,
+    "enableReferenceCountDisplay": true,
+    "enableSemanticHighlighting": true,
+    "analysisTimeoutMs": 5000,
+    "excludeSearchPatterns": [
+      "**/node_modules",
+      "**/bin",
+      "**/obj"
+    ]
+  }
+}
