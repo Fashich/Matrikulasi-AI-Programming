@@ -1,35 +1,42 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using PickableNamespace;
 
 public class PickableManager : MonoBehaviour
 {
+    [SerializeField] private TextMeshProUGUI coinText;
     private List<Pickable> _pickableList = new List<Pickable>();
+    private int totalCoins;
 
     void Start()
     {
         InitPickableList();
-        OnPickablePicked(Pickable pickable);
+        UpdateCoinText();
     }
 
     private void InitPickableList()
     {
-        // Gunakan FindObjectsOfType tanpa parameter (hanya aktifkan objek)
-        Pickable[] pickableObjects = GameObject.FindObjectsOfType<Pickable>();
-
-        for (int i = 0; i < pickableObjects.Length; i++)
+        Pickable[] pickables = GameObject.FindObjectsByType<Pickable>(FindObjectsSortMode.None);
+        foreach (Pickable p in pickables)
         {
-            _pickableList.Add(pickableObjects[i]);
-            pickableObjects[i].OnPicked += OnPickablePicked;
+            _pickableList.Add(p);
+            p.OnCollected += HandleCollect;
         }
-
-        Debug.Log("Total Pickables: " + _pickableList.Count);
+        totalCoins = _pickableList.Count;
     }
-    private void OnPickablePicked(Pickable pickable)
+
+    private void HandleCollect(Pickable pickable)
     {
         _pickableList.Remove(pickable);
-        if (_pickableList.Count <= 0) {
-            Debug.Log("Win");
+        UpdateCoinText();
+    }
+
+    private void UpdateCoinText()
+    {
+        if (coinText != null)
+        {
+            coinText.text = $"Coins Tersisa: {_pickableList.Count}/{totalCoins}";
         }
     }
 }

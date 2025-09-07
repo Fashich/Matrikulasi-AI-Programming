@@ -40,9 +40,17 @@ public class Player : MonoBehaviour
     [SerializeField] private float _minVerticalAngle = -90f;
     [SerializeField] private float _maxVerticalAngle = 90f;
 
+    // Tambahkan variabel untuk Power-Up
+    public bool canEatEnemies = false;
+    private float powerUpTimer = 0f;
+    private float powerUpDuration = 10f;
+    public AudioClip powerUpSound;
+    public AudioClip eatEnemySound;
+
     private Rigidbody _rigidbody;
     private Transform _cameraTransform;
     private float _verticalRotation = 0f;
+    private bool isDying = false;
 
     private void Awake()
     {
@@ -128,5 +136,97 @@ public class Player : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawRay(transform.position, transform.forward * 0.5f);
         }
+    }
+
+    // Metode baru untuk mengaktifkan Power-Up
+    public void ActivatePowerUp(float duration)
+    {
+        canEatEnemies = true;
+        powerUpDuration = duration;
+        powerUpTimer = 0f;
+
+        // Mainkan suara power-up
+        if (powerUpSound != null)
+        {
+            AudioSource.PlayClipAtPoint(powerUpSound, transform.position);
+        }
+
+        Debug.Log("Power-Up activated! You can eat enemies for " + duration + " seconds!");
+    }
+
+    private void Update()
+    {
+        // Update timer Power-Up
+        if (canEatEnemies)
+        {
+            powerUpTimer += Time.deltaTime;
+            if (powerUpTimer >= powerUpDuration)
+            {
+                canEatEnemies = false;
+                powerUpTimer = 0f;
+                Debug.Log("Power-Up expired");
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy"))
+        {
+            Enemy enemy = other.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                if (canEatEnemies)
+                {
+                    // Mainkan suara makan musuh
+                    if (eatEnemySound != null)
+                    {
+                        AudioSource.PlayClipAtPoint(eatEnemySound, transform.position);
+                    }
+
+                    // Makan musuh dan respawn ke posisi awal
+                    enemy.EatenByPlayer();
+                    Debug.Log("Enemy eaten and respawned!");
+                }
+                else
+                {
+                    // Player mati jika tidak dalam keadaan Power-Up
+                    Debug.Log("Player died!");
+                    Cursor.visible = true;
+
+                    // Panggil death sequence
+                    StartCoroutine(HandleDeathSequence());
+                }
+            }
+            else
+            {
+                Debug.LogError("Enemy component is null! Make sure Enemy.cs script is attached to the enemy object.");
+            }
+        }
+    }
+
+    private IEnumerator HandleDeathSequence()
+    {
+        if (isDying) yield break;
+
+        isDying = true;
+
+        // Efek kematian (misalnya: player berkedip atau berubah warna)
+        Renderer playerRenderer = GetComponent<Renderer>();
+        if (playerRenderer != null)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                playerRenderer.enabled = false;
+                yield return new WaitForSeconds(0.1f);
+                playerRenderer.enabled = true;
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+
+        // Setelah efek kematian selesai, baru tampilkan GameOverCanvas
+        GameManager.Instance.ShowGameOverMenu();
+
+        isDying = false;
     }
 }
