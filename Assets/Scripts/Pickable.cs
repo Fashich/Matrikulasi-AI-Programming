@@ -62,11 +62,33 @@ namespace PickableNamespace {
         {
             if (other.CompareTag("Player"))
             {
-                Debug.Log($"Koin terkumpul! ({Type})");
-                OnCollected?.Invoke(this);
-                AudioSource.PlayClipAtPoint(CollectSound, transform.position);
-                Destroy(gameObject);
+                Debug.Log($"[Pickable] Koin terkumpul! ({Type}) - {gameObject.name}");
+
+                // Pastikan event dipicu
+                if (OnCollected != null)
+                {
+                    OnCollected.Invoke(this);
+                    Debug.Log($"[Pickable] OnCollected event invoked for {gameObject.name}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[Pickable] OnCollected event is null for {gameObject.name}");
+                }
+
+                // Mainkan suara dan hapus objek
+                if (CollectSound != null)
+                {
+                    AudioSource.PlayClipAtPoint(CollectSound, transform.position);
+                }
+
+                // Hapus koin setelah delay kecil untuk memastikan event terpanggil
+                Invoke(nameof(DestroyPickable), 0.05f);
             }
+        }
+
+        private void DestroyPickable()
+        {
+            Destroy(gameObject);
         }
     }
 }
