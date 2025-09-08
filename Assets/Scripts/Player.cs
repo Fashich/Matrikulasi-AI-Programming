@@ -42,10 +42,13 @@ public class Player : MonoBehaviour
 
     // Tambahkan variabel untuk Power-Up
     public bool canEatEnemies = false;
-    private float powerUpTimer = 0f;
+    public float powerUpTimer = 0f; // Ubah menjadi public
     private float powerUpDuration = 10f;
     public AudioClip powerUpSound;
     public AudioClip eatEnemySound;
+
+    // Tambahkan variabel untuk posisi awal
+    public Vector3 initialPosition;
 
     private Rigidbody _rigidbody;
     private Transform _cameraTransform;
@@ -55,6 +58,7 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
+        initialPosition = transform.position; // Simpan posisi awal
 
         // Setup camera
         GameObject mainCamera = GameObject.FindWithTag("MainCamera");
@@ -77,39 +81,40 @@ public class Player : MonoBehaviour
     }
 
     private void HandleMovement()
-{
-    // Dapatkan input horizontal dan vertikal dalam koordinat lokal karakter
-    float horizontal = Input.GetAxis("Horizontal");
-    float vertical = Input.GetAxis("Vertical");
-
-    // Hitung arah gerakan berdasarkan sumbu lokal karakter
-    Vector3 movementDirection =
-        transform.right * horizontal +
-        transform.forward * vertical;
-
-    movementDirection.y = 0; // Hapus komponen vertikal
-    movementDirection = movementDirection.normalized;
-
-    if (movementDirection != Vector3.zero)
     {
-        // Rotasi karakter sesuai arah gerakan
-        Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
-        // transform.rotation = Quaternion.Slerp(
-        //     transform.rotation,
-        //     targetRotation,
-        //     Time.fixedDeltaTime * _rotationSmoothness
-        // );
+        // Dapatkan input horizontal dan vertikal dalam koordinat lokal karakter
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
-        // Cek tabrakan dengan dinding sebelum bergerak
-        if (!Physics.Raycast(transform.position, movementDirection, 0.5f))
+        // Hitung arah gerakan berdasarkan sumbu lokal karakter
+        Vector3 movementDirection =
+            transform.right * horizontal +
+            transform.forward * vertical;
+
+        movementDirection.y = 0; // Hapus komponen vertikal
+        movementDirection = movementDirection.normalized;
+
+        if (movementDirection != Vector3.zero)
         {
-            _rigidbody.MovePosition(
-                transform.position +
-                movementDirection * _speed * Time.fixedDeltaTime
-            );
+            // Rotasi karakter sesuai arah gerakan
+            Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
+            // transform.rotation = Quaternion.Slerp(
+            //     transform.rotation,
+            //     targetRotation,
+            //     Time.fixedDeltaTime * _rotationSmoothness
+            // );
+
+            // Cek tabrakan dengan dinding sebelum bergerak
+            if (!Physics.Raycast(transform.position, movementDirection, 0.5f))
+            {
+                _rigidbody.MovePosition(
+                    transform.position +
+                    movementDirection * _speed * Time.fixedDeltaTime
+                );
+            }
         }
     }
-}
+
     private void HandleCameraRotation()
     {
         if (_cameraTransform == null) return;
@@ -197,10 +202,6 @@ public class Player : MonoBehaviour
                     // Panggil death sequence
                     StartCoroutine(HandleDeathSequence());
                 }
-            }
-            else
-            {
-                Debug.LogError("Enemy component is null! Make sure Enemy.cs script is attached to the enemy object.");
             }
         }
     }

@@ -1,5 +1,5 @@
 // /* This class manages a list of pickable objects in a game, updating a UI text to display the number of
-// remaining coins and handling collection events. */
+// remaining coins and handles collection events. */
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,15 +7,15 @@ using UnityEngine;
 // {
 //     [SerializeField] private TextMeshProUGUI coinText;
 //     [SerializeField] private int totalCoins = 0;
-
+//
 //     private List<Pickable> _pickableList = new List<Pickable>();
-
+//
 //     void Start()
 //     {
 //         InitPickableList();
 //         UpdateCoinText();
 //     }
-
+//
 //     private void InitPickableList()
 //     {
 //         // Cari semua objek dengan skrip Pickable
@@ -27,18 +27,18 @@ using UnityEngine;
 //         }
 //         totalCoins = _pickableList.Count;
 //     }
-
+//
 //     private void HandleCollect(Pickable pickable)
 //     {
 //         _pickableList.Remove(pickable);
 //         UpdateCoinText();
-
+//
 //         if (_pickableList.Count == 0)
 //         {
 //             Debug.Log("Selamat! Semua koin terkumpul!");
 //         }
 //     }
-
+//
 //     private void UpdateCoinText()
 //     {
 //         if (coinText != null)
@@ -49,24 +49,24 @@ using UnityEngine;
 // }
 
 namespace PickableNamespace {
-public enum PickableType { Coin, PowerUp }
+    public enum PickableType { Coin, PowerUp }
 
-public class Pickable : MonoBehaviour
-{
-    public PickableType Type;
-    public AudioClip CollectSound;
-
-    public event System.Action<Pickable> OnCollected;
-
-    private void OnTriggerEnter(Collider other)
+    public class Pickable : MonoBehaviour
     {
-        if (other.CompareTag("Player"))
+        public PickableType Type;
+        public AudioClip CollectSound;
+
+        public event System.Action<Pickable> OnCollected;
+
+        private void OnTriggerEnter(Collider other)
         {
-            Debug.Log($"Koin terkumpul! ({Type})");
-            OnCollected?.Invoke(this);
-            AudioSource.PlayClipAtPoint(CollectSound, transform.position);
-            Destroy(gameObject);
+            if (other.CompareTag("Player"))
+            {
+                Debug.Log($"Koin terkumpul! ({Type})");
+                OnCollected?.Invoke(this);
+                AudioSource.PlayClipAtPoint(CollectSound, transform.position);
+                Destroy(gameObject);
+            }
         }
     }
-}
 }

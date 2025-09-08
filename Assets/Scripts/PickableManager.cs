@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using PickableNamespace;
 
 public class PickableManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI coinText;
-    private List<Pickable> _pickableList = new List<Pickable>();
+    private List<PickableNamespace.Pickable> _pickableList = new List<PickableNamespace.Pickable>();
     private int totalCoins;
 
     void Start()
@@ -17,8 +16,9 @@ public class PickableManager : MonoBehaviour
 
     private void InitPickableList()
     {
-        Pickable[] pickables = GameObject.FindObjectsByType<Pickable>(FindObjectsSortMode.None);
-        foreach (Pickable p in pickables)
+        // Cari semua objek dengan skrip Pickable
+        PickableNamespace.Pickable[] pickables = GameObject.FindObjectsByType<PickableNamespace.Pickable>(FindObjectsSortMode.None);
+        foreach (PickableNamespace.Pickable p in pickables)
         {
             _pickableList.Add(p);
             p.OnCollected += HandleCollect;
@@ -26,10 +26,15 @@ public class PickableManager : MonoBehaviour
         totalCoins = _pickableList.Count;
     }
 
-    private void HandleCollect(Pickable pickable)
+    private void HandleCollect(PickableNamespace.Pickable pickable)
     {
         _pickableList.Remove(pickable);
         UpdateCoinText();
+
+        if (_pickableList.Count == 0)
+        {
+            Debug.Log("Selamat! Semua koin terkumpul!");
+        }
     }
 
     private void UpdateCoinText()
