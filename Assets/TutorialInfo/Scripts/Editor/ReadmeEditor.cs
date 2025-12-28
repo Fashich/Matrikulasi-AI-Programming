@@ -273,20 +273,25 @@ namespace ReadmeSystem.Editor
 
             foreach (string guid in ids)
             {
-                var readmeObject = AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid));
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var readmeObject = AssetDatabase.LoadMainAssetAtPath(path);
 
-                Readme readme = (Readme)readmeObject;
-                if (readme.isRoot)
+                // Perbaikan: Gunakan pengecekan tipe yang aman
+                Readme readme = readmeObject as Readme;
+                if (readme != null && readme.isRoot)
                 {
                     results.Add(readme);
-
+                }
+                else if (readmeObject != null)
+                {
+                    // Debug untuk membantu identifikasi aset yang bermasalah
+                    Debug.LogWarning($"Object {path} ditemukan sebagai 'Readme' tetapi tidak dapat di-cast ke tipe Readme");
                 }
             }
 
-
-
-            return results; ;
+            return results;
         }
+
         static Readme GetReadmeRoot()
         {
             Readme result = GetAllRootReadme().FirstOrDefault();
@@ -297,8 +302,8 @@ namespace ReadmeSystem.Editor
                 result.isRoot = true;
             }
             return result;
-
         }
+
         static void ResetAllRootReadme()
         {
             foreach (Readme readme in GetAllRootReadme())

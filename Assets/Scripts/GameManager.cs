@@ -1,3 +1,5 @@
+using PickableNamespace;
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -28,57 +30,61 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        // Pastikan hanya ada satu instance GameManager
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
         {
             Destroy(gameObject);
             return;
         }
 
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        // Setup awal
         SetupInitialGameState();
-        SetupUI();
-    }
 
-    private void Start()
-    {
-        Debug.Log("GameManager started");
-        Debug.Log("gameOverCanvas: " + (gameOverCanvas ? "assigned" : "not assigned"));
-        Debug.Log("winCanvas: " + (winCanvas ? "assigned" : "not assigned"));
-    }
-
-    private void OnEnable()
-    {
-        SetupUI();
-    }
-
-    private void OnLevelWasLoaded(int level)
-    {
+        // Setup UI
         SetupUI();
     }
 
     private void SetupInitialGameState()
     {
-        if (gameOverCanvas != null) gameOverCanvas.enabled = false;
-        if (winCanvas != null) winCanvas.enabled = false;
+        // Setup awal
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.enabled = false;
+        }
+
+        // Setup Win Canvas
+        if (winCanvas != null)
+        {
+            winCanvas.enabled = false;
+        }
+
         Time.timeScale = 1f;
 
+        // Simpan posisi awal player
         Player player = FindFirstObjectByType<Player>();
         if (player != null)
         {
-            playerInitialPosition = player.transform.position;
+            // Pastikan initialPosition sudah diset di Player
+            playerInitialPosition = player.initialPosition;
         }
         else
         {
-            Debug.LogError("Player not found during initialization.");
+            Debug.LogError("Player not found during initialization. Make sure player exists in the scene.");
         }
 
+        // Simpan referensi semua enemy
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
         if (enemies == null || enemies.Length == 0)
         {
-            Debug.LogWarning("No enemies found with 'Enemy' tag.");
+            Debug.LogWarning("No enemies found with 'Enemy' tag. Make sure enemies are properly tagged.");
         }
 
+        // Perbaiki: Gunakan FindObjectsByType untuk mencari objek dengan komponen Pickable
         var pickableObjects = FindObjectsByType<PickableNamespace.Pickable>(FindObjectsSortMode.None);
         coins = new GameObject[pickableObjects.Length];
         for (int i = 0; i < pickableObjects.Length; i++)
@@ -88,73 +94,74 @@ public class GameManager : MonoBehaviour
 
         if (coins == null || coins.Length == 0)
         {
-            Debug.LogWarning("No pickable items found.");
+            Debug.LogWarning("No pickable items found with Pickable component. Make sure coins/power-ups have the Pickable script.");
         }
     }
 
     private void SetupUI()
     {
+        // Setup tombol restart untuk Game Over
         if (restartButton != null)
         {
+            restartButton.onClick.RemoveAllListeners();
             restartButton.onClick.AddListener(RestartGame);
-        }
-        else Debug.LogError("Restart button not assigned.");
-
-        if (mainMenuButton != null)
-        {
-            mainMenuButton.onClick.AddListener(GoToMainMenu);
-        }
-        else Debug.LogError("Main menu button not assigned.");
-
-        if (winRestartButton != null)
-        {
-            winRestartButton.onClick.AddListener(RestartGame);
-        }
-        else Debug.LogWarning("Win restart button not assigned.");
-    }
-
-    public void ShowWinScreen()
-    {
-        isGameOver = false;
-        if (winCanvas != null)
-        {
-            winCanvas.enabled = true;
-            Debug.Log("Win screen displayed.");
         }
         else
         {
-            Debug.LogError("WinCanvas is not assigned in GameManager.");
-            return;
+            Debug.LogError("Restart button not assigned in GameManager. Restart functionality will not work.");
         }
 
-        Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        // Setup tombol main menu
+        if (mainMenuButton != null)
+        {
+            mainMenuButton.onClick.RemoveAllListeners();
+            mainMenuButton.onClick.AddListener(GoToMainMenu);
+        }
+        else
+        {
+            Debug.LogError("Main menu button not assigned in GameManager. Main menu functionality will not work.");
+        }
+
+        // Setup tombol restart untuk Win Screen
+        if (winRestartButton != null)
+        {
+            winRestartButton.onClick.RemoveAllListeners();
+            winRestartButton.onClick.AddListener(RestartGame);
+        }
+        else
+        {
+            Debug.LogWarning("Win restart button not assigned. Win screen restart functionality may not work.");
+        }
     }
 
     public void ShowGameOverMenu()
     {
         isGameOver = true;
+
+        // Pastikan canvas ada sebelum mengaktifkannya
         if (gameOverCanvas != null)
         {
             gameOverCanvas.enabled = true;
         }
         else
         {
-            Debug.LogError("GameOverCanvas is not assigned in GameManager.");
+            Debug.LogError("GameOverCanvas is not assigned. Cannot show game over menu.");
             return;
         }
 
         Time.timeScale = 0f;
+
+        // Pastikan kursor terlihat
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        Debug.Log("Game Over! Player has been defeated.");
     }
 
+    // HANYA ADA SATU DEFINISI ShowWinScreen()
     public void ShowWinScreen()
     {
         isGameOver = false;
-        isWinScreenActive = true; // Tandai winscreen aktif
-
         if (winCanvas != null)
         {
             winCanvas.enabled = true;
@@ -162,7 +169,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("WinCanvas is not assigned in GameManager.");
+            Debug.LogError("WinCanvas is not assigned in GameManager. Please assign it in the Inspector.");
             return;
         }
 
@@ -184,7 +191,6 @@ public class GameManager : MonoBehaviour
 
         // Kembalikan ke keadaan awal
         isGameOver = false;
-        isWinScreenActive = false;
 
         // Nonaktifkan canvas game over dan win screen
         if (gameOverCanvas != null)
@@ -341,30 +347,5 @@ public class GameManager : MonoBehaviour
             Debug.Log("M key pressed for main menu");
             GoToMainMenu();
         }
-    }
-
-    // Tambahkan metode untuk memeriksa apakah semua koin telah terkumpul
-    public bool AreAllCoinsCollected()
-    {
-        if (pickableManager != null)
-        {
-            return pickableManager.GetRemainingCoins() == 0;
-        }
-
-        // Jika tidak ada PickableManager, cek langsung ke array coins
-        if (coins == null || coins.Length == 0)
-        {
-            return true; // Tidak ada koin, dianggap semua terkumpul
-        }
-
-        foreach (GameObject coin in coins)
-        {
-            if (coin != null && coin.activeSelf)
-            {
-                return false; // Masih ada koin yang aktif
-            }
-        }
-
-        return true;
     }
 }

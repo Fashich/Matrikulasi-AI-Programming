@@ -47,7 +47,6 @@ public class Player : MonoBehaviour
     public AudioClip powerUpSound;
     public AudioClip eatEnemySound;
 
-    // Tambahkan variabel untuk posisi awal
     public Vector3 initialPosition;
 
     private Rigidbody _rigidbody;
@@ -58,9 +57,8 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
-        initialPosition = transform.position; // Simpan posisi awal
+        initialPosition = transform.position;
 
-        // Setup camera
         GameObject mainCamera = GameObject.FindWithTag("MainCamera");
         if (mainCamera != null)
         {
@@ -82,21 +80,18 @@ public class Player : MonoBehaviour
 
     private void HandleMovement()
     {
-        // Dapatkan input horizontal dan vertikal dalam koordinat lokal karakter
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        // Hitung arah gerakan berdasarkan sumbu lokal karakter
         Vector3 movementDirection =
             transform.right * horizontal +
             transform.forward * vertical;
 
-        movementDirection.y = 0; // Hapus komponen vertikal
+        movementDirection.y = 0;
         movementDirection = movementDirection.normalized;
 
         if (movementDirection != Vector3.zero)
         {
-            // Rotasi karakter sesuai arah gerakan
             Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
             // transform.rotation = Quaternion.Slerp(
             //     transform.rotation,

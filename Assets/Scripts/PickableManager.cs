@@ -4,7 +4,6 @@ using TMPro;
 
 public class PickableManager : MonoBehaviour
 {
-    [Header("UI Settings")]
     [SerializeField] private TextMeshProUGUI coinText;
     [SerializeField] private TextMeshProUGUI winText;
 
@@ -13,58 +12,41 @@ public class PickableManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("[PickableManager] Starting initialization...");
         InitPickableList();
         UpdateCoinText();
     }
 
     private void InitPickableList()
     {
-        Debug.Log("[PickableManager] Finding all pickable objects...");
-
-        // Cari semua objek dengan skrip Pickable
+        // Ganti dengan FindObjectsByType untuk mendapatkan semua objek Pickable
         PickableNamespace.Pickable[] pickables = FindObjectsByType<PickableNamespace.Pickable>(FindObjectsSortMode.None);
 
-        Debug.Log($"[PickableManager] Found {pickables.Length} pickable objects");
-
-        _pickableList = new List<PickableNamespace.Pickable>(pickables);
-        totalCoins = _pickableList.Count;
-
-        foreach (PickableNamespace.Pickable p in _pickableList)
+        if (pickables != null && pickables.Length > 0)
         {
-            if (p != null)
+            foreach (PickableNamespace.Pickable p in pickables)
             {
-                p.OnCollected += HandleCollect;
-                Debug.Log($"[PickableManager] Registered OnCollected event for {p.gameObject.name}");
+                _pickableList.Add(p);
+                p.OnCollected += HandleCollect; // Tambahkan event untuk setiap objek
             }
-            else
-            {
-                Debug.LogWarning("[PickableManager] Found null pickable object in the list");
-            }
+            totalCoins = _pickableList.Count;
+            UpdateCoinText();
         }
-
-        UpdateCoinText();
+        else
+        {
+            Debug.LogWarning("Tidak ada objek Pickable ditemukan");
+        }
     }
 
     private void HandleCollect(PickableNamespace.Pickable pickable)
     {
-        Debug.Log($"[PickableManager] Koin terkumpul: {pickable.gameObject.name}");
-
         if (_pickableList.Contains(pickable))
         {
             _pickableList.Remove(pickable);
-            Debug.Log($"[PickableManager] {_pickableList.Count} koin tersisa");
+            UpdateCoinText();
         }
-        else
-        {
-            Debug.LogWarning("[PickableManager] Pickable tidak ditemukan dalam daftar");
-        }
-
-        UpdateCoinText();
 
         if (_pickableList.Count == 0)
         {
-            Debug.Log("[PickableManager] SELAMAT! SEMUA KOIN TERKUMPUL!");
             OnAllCoinsCollected();
         }
     }
@@ -73,21 +55,14 @@ public class PickableManager : MonoBehaviour
     {
         if (coinText != null)
         {
-            coinText.text = $"Coins Tersisa: {_pickableList.Count}/{totalCoins}";
-            Debug.Log($"[PickableManager] UI updated - {_pickableList.Count}/{totalCoins} coins");
-        }
-        else
-        {
-            Debug.LogWarning("[PickableManager] CoinText tidak diassign di Inspector");
+            coinText.text = $"<sprite name=\"pallets\">: {_pickableList.Count}/{totalCoins}";
         }
     }
 
     private void OnAllCoinsCollected()
     {
-        Debug.Log("[PickableManager] Memanggil ShowWinScreen");
-
-        // Tambahkan delay kecil untuk memastikan semua koin benar-benar dihancurkan
-        Invoke(nameof(ShowWinScreenDelayed), 0.1f);
+        Debug.Log("Semua koin terkumpul! Menampilkan winscreen...");
+        GameManager.Instance.ShowWinScreen();
     }
 
     private void ShowWinScreenDelayed()
